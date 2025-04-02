@@ -5,14 +5,29 @@ class Program
 {
     static void Main()
     {
-        TcpClient client = new TcpClient("127.0.0.1", 8080);
-        Console.WriteLine("Conectado al servidor.");
+        try
+        {
+            TcpClient client = new TcpClient("127.0.0.1", 8080);
+            NetworkStream stream = client.GetStream();
 
-        // Handshake inicial (Etapa 6)
-        NetworkStream stream = client.GetStream();
-        byte[] buffer = System.Text.Encoding.ASCII.GetBytes("INICIO");
-        stream.Write(buffer, 0, buffer.Length);
+            // Recibir ID y dirección del servidor
+            byte[] buffer = new byte[256];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string respuesta = System.Text.Encoding.ASCII.GetString(buffer, 0, bytesRead);
+            
+            string[] datos = respuesta.Split(':');
+            Console.WriteLine($"ID asignado: {datos[0]}, Dirección: {datos[1]}");
 
-        client.Close();
+            // Mantener conexión (para pruebas)
+            Console.WriteLine("Presiona Enter para salir...");
+            Console.ReadLine();
+            
+            client.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 }
+

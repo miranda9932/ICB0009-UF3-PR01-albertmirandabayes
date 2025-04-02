@@ -41,23 +41,35 @@ class Program
         }
     }
 
-    static void HandleClient(Cliente cliente)
+   static void HandleClient(Cliente cliente)
+{
+    try
     {
-        Console.WriteLine($"Gestionando vehículo #{cliente.Id} (Dirección: {cliente.Direccion})");
-        
-        // Obtener NetworkStream (Etapa 4)
         NetworkStream stream = cliente.TcpClient.GetStream();
+        Console.WriteLine($"Vehículo #{cliente.Id} conectado (Dirección: {cliente.Direccion})");
 
-        
+        // Enviar ID y dirección al cliente (formato: "ID:Dirección")
+        string mensaje = $"{cliente.Id}:{cliente.Direccion}";
+        byte[] buffer = System.Text.Encoding.ASCII.GetBytes(mensaje);
+        stream.Write(buffer, 0, buffer.Length);
 
-        // Simulación: mantener conexión abierta
+        // Mantener conexión abierta (para pruebas)
         while (cliente.TcpClient.Connected)
         {
             Thread.Sleep(1000);
         }
-
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error con vehículo #{cliente.Id}: {ex.Message}");
+    }
+    finally
+    {
+        clientesConectados.Remove(cliente);
         Console.WriteLine($"Vehículo #{cliente.Id} desconectado.");
     }
+}
+
 }
 
 // Clase para almacenar información del cliente 
