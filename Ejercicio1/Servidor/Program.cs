@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Generic;
-
 class Program
 {
     // Lista de clientes conectados (compartida entre hilos)
@@ -41,21 +40,25 @@ class Program
         }
     }
 
-   static void HandleClient(Cliente cliente)
+static void HandleClient(Cliente cliente)
 {
     try
     {
         NetworkStream stream = cliente.TcpClient.GetStream();
         Console.WriteLine($"Vehículo #{cliente.Id} conectado (Dirección: {cliente.Direccion})");
 
-        // Enviar ID y dirección al cliente (formato: "ID:Dirección")
+        // Enviar ID y dirección usando NetworkStreamClass
         string mensaje = $"{cliente.Id}:{cliente.Direccion}";
-        byte[] buffer = System.Text.Encoding.ASCII.GetBytes(mensaje);
-        stream.Write(buffer, 0, buffer.Length);
+        NetworkStreamClass.EscribirMensajeNetworkStream(stream, mensaje);
 
-        // Mantener conexión abierta (para pruebas)
+        // Mantener conexión (para pruebas)
         while (cliente.TcpClient.Connected)
         {
+            string mensajeCliente = NetworkStreamClass.LeerMensajeNetworkStream(stream);
+            if (!string.IsNullOrEmpty(mensajeCliente))
+            {
+                Console.WriteLine($"Vehículo #{cliente.Id} dice: {mensajeCliente}");
+            }
             Thread.Sleep(1000);
         }
     }
@@ -66,7 +69,7 @@ class Program
     finally
     {
         clientesConectados.Remove(cliente);
-        Console.WriteLine($"Vehículo #{cliente.Id} desconectado.");
+        cliente.TcpClient.Close();
     }
 }
 
