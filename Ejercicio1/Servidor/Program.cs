@@ -45,21 +45,24 @@ static void HandleClient(Cliente cliente)
     try
     {
         NetworkStream stream = cliente.TcpClient.GetStream();
-        Console.WriteLine($"Vehículo #{cliente.Id} conectado (Dirección: {cliente.Direccion})");
+        
+        // Enviar datos de conexión
+        string datosConexion = $"{cliente.Id}:{cliente.Direccion}";
+        NetworkStreamClass.EscribirMensajeNetworkStream(stream, datosConexion);
+        Console.WriteLine($"Enviados datos a vehículo #{cliente.Id}");
 
-        // Enviar ID y dirección usando NetworkStreamClass
-        string mensaje = $"{cliente.Id}:{cliente.Direccion}";
-        NetworkStreamClass.EscribirMensajeNetworkStream(stream, mensaje);
+        // Recibir confirmación
+        string confirmacion = NetworkStreamClass.LeerMensajeNetworkStream(stream);
+        Console.WriteLine($"Vehículo #{cliente.Id} confirmó: {confirmacion}");
 
-        // Mantener conexión (para pruebas)
+        // Bucle principal de comunicación
         while (cliente.TcpClient.Connected)
         {
-            string mensajeCliente = NetworkStreamClass.LeerMensajeNetworkStream(stream);
-            if (!string.IsNullOrEmpty(mensajeCliente))
-            {
-                Console.WriteLine($"Vehículo #{cliente.Id} dice: {mensajeCliente}");
-            }
-            Thread.Sleep(1000);
+            string mensaje = NetworkStreamClass.LeerMensajeNetworkStream(stream);
+            Console.WriteLine($"Vehículo #{cliente.Id} -> Posición: {mensaje}");
+            
+            // Simular actualización de posición
+            NetworkStreamClass.EscribirMensajeNetworkStream(stream, "OK");
         }
     }
     catch (Exception ex)
