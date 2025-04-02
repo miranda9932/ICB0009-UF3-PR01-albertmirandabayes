@@ -1,0 +1,15 @@
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/bin/Debug/net9.0/Servidor
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/bin/Debug/net9.0/Servidor.deps.json
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/bin/Debug/net9.0/Servidor.runtimeconfig.json
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/bin/Debug/net9.0/Servidor.dll
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/bin/Debug/net9.0/Servidor.pdb
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.GeneratedMSBuildEditorConfig.editorconfig
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.AssemblyInfoInputs.cache
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.AssemblyInfo.cs
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.csproj.CoreCompileInputs.cache
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.sourcelink.json
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.dll
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/refint/Servidor.dll
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.pdb
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/Servidor.genruntimeconfig.cache
+/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio1/Servidor/obj/Debug/net9.0/ref/Servidor.dll
