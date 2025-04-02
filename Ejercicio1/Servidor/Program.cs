@@ -46,35 +46,34 @@ static void HandleClient(Cliente cliente)
     {
         NetworkStream stream = cliente.TcpClient.GetStream();
         
-        // Enviar datos de conexión
-        string datosConexion = $"{cliente.Id}:{cliente.Direccion}";
-        NetworkStreamClass.EscribirMensajeNetworkStream(stream, datosConexion);
-        Console.WriteLine($"Enviados datos a vehículo #{cliente.Id}");
-
-        // Recibir confirmación
-        string confirmacion = NetworkStreamClass.LeerMensajeNetworkStream(stream);
-        Console.WriteLine($"Vehículo #{cliente.Id} confirmó: {confirmacion}");
-
-        // Bucle principal de comunicación
-        while (cliente.TcpClient.Connected)
+        // Paso 1: Esperar mensaje "INICIO" del cliente
+        string inicioMsg = NetworkStreamClass.LeerMensajeNetworkStream(stream);
+        if (inicioMsg != "INICIO")
         {
-            string mensaje = NetworkStreamClass.LeerMensajeNetworkStream(stream);
-            Console.WriteLine($"Vehículo #{cliente.Id} -> Posición: {mensaje}");
-            
-            // Simular actualización de posición
-            NetworkStreamClass.EscribirMensajeNetworkStream(stream, "OK");
+            throw new Exception("Handshake fallido: mensaje inicial incorrecto");
         }
+
+        // Paso 2: Enviar ID y dirección
+        string datosCliente = $"{cliente.Id}:{cliente.Direccion}";
+        NetworkStreamClass.EscribirMensajeNetworkStream(stream, datosCliente);
+        Console.WriteLine($"Enviado ID {cliente.Id} a vehículo {cliente.Direccion}");
+
+        // Paso 3: Esperar confirmación del cliente
+        string confirmacion = NetworkStreamClass.LeerMensajeNetworkStream(stream);
+        if (confirmacion != cliente.Id.ToString())
+        {
+            throw new Exception($"Handshake fallido: confirmación incorrecta (esperado {cliente.Id}, recibido {confirmacion})");
+        }
+
+        Console.WriteLine($"Handshake completado con vehículo #{cliente.Id}");
+        
+        // Aquí iría el resto de la lógica de comunicación...
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error con vehículo #{cliente.Id}: {ex.Message}");
+        }
     }
-    finally
-    {
-        clientesConectados.Remove(cliente);
-        cliente.TcpClient.Close();
-    }
-}
 
 }
 
