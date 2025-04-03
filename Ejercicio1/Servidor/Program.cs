@@ -2,92 +2,125 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.IO;
+
 class Program
 {
-    // Lista de clientes conectados (compartida entre hilos)
-    static List<Cliente> clientesConectados = new List<Cliente>();
-    static int nextId = 1; // Contador para IDs únicos
-    static object lockObject = new object(); // Para thread-safety
+    private static readonly ConcurrentDictionary<int, Cliente> _clientes = new();
+    private static int _nextId = 1;
+    private static readonly object _lock = new();
+
+    class Cliente
+    {
+        public int Id { get; }
+        public string Direccion { get; }
+        public TcpClient TcpClient { get; }
+        public DateTime ConexionTime { get; } = DateTime.Now;
+
+        public Cliente(int id, string direccion, TcpClient client)
+        {
+            Id = id;
+            Direccion = direccion;
+            TcpClient = client;
+        }
+    }
 
     static void Main()
     {
-        TcpListener server = new TcpListener(IPAddress.Any, 8080);
-        server.Start();
-        Console.WriteLine("Servidor iniciado en el puerto 8080...");
-
-        while (true)
+        try
         {
-            TcpClient tcpClient = server.AcceptTcpClient();
-            Console.WriteLine("Nuevo cliente conectado.");
+            var server = new TcpListener(IPAddress.Any, 8080);
+            server.Start();
+            Console.WriteLine("🟢 Servidor iniciado en puerto 8080");
 
-            // Asignar ID y dirección (norte/sur) al cliente
-            int id;
-            string direccion = new Random().Next(0, 2) == 0 ? "Norte" : "Sur";
-
-            lock (lockObject) // Bloqueo para evitar condiciones de carrera
+            while (true)
             {
-                id = nextId++;
+                var client = server.AcceptTcpClient();
+                var id = GenerateId();
+                var direccion = new Random().Next(0, 2) == 0 ? "Norte" : "Sur";
+                var cliente = new Cliente(id, direccion, client);
+
+                _clientes.TryAdd(id, cliente);
+                Console.WriteLine($"🚗 Vehículo #{id} ({direccion}) conectado. Total: {_clientes.Count}");
+
+                new Thread(() => HandleClient(cliente)).Start();
             }
-
-            // Crear objeto Cliente y añadirlo a la lista
-            Cliente cliente = new Cliente(id, direccion, tcpClient);
-            clientesConectados.Add(cliente);
-
-            // Iniciar hilo para gestionar el cliente
-            Thread clientThread = new Thread(() => HandleClient(cliente));
-            clientThread.Start();
         }
-    }
-
-static void HandleClient(Cliente cliente)
-{
-    try
-    {
-        NetworkStream stream = cliente.TcpClient.GetStream();
-        
-        // Paso 1: Esperar mensaje "INICIO" del cliente
-        string inicioMsg = NetworkStreamClass.LeerMensajeNetworkStream(stream);
-        if (inicioMsg != "INICIO")
+        catch (Exception ex)
         {
-            throw new Exception("Handshake fallido: mensaje inicial incorrecto");
+            Console.WriteLine($"🔴 Error crítico: {ex.Message}");
         }
+    }
 
-        // Paso 2: Enviar ID y dirección
-        string datosCliente = $"{cliente.Id}:{cliente.Direccion}";
-        NetworkStreamClass.EscribirMensajeNetworkStream(stream, datosCliente);
-        Console.WriteLine($"Enviado ID {cliente.Id} a vehículo {cliente.Direccion}");
+    static int GenerateId()
+    {
+        lock (_lock) return _nextId++;
+    }
 
-        // Paso 3: Esperar confirmación del cliente
-        string confirmacion = NetworkStreamClass.LeerMensajeNetworkStream(stream);
-        if (confirmacion != cliente.Id.ToString())
+    static void HandleClient(Cliente cliente)
+    {
+        try
         {
-            throw new Exception($"Handshake fallido: confirmación incorrecta (esperado {cliente.Id}, recibido {confirmacion})");
+            using var stream = cliente.TcpClient.GetStream();
+            var reader = new StreamReader(stream);
+            var writer = new StreamWriter(stream) { AutoFlush = true };
+
+            // Handshake
+            writer.WriteLine("ID:" + cliente.Id);
+            var ack = reader.ReadLine();
+            if (ack != $"ACK:{cliente.Id}")
+                throw new Exception("Handshake fallido");
+
+            Console.WriteLine($"🔄 Vehículo #{cliente.Id} autenticado");
+
+            // Bucle principal
+            while (cliente.TcpClient.Connected)
+            {
+                var msg = reader.ReadLine();
+                if (string.IsNullOrEmpty(msg)) continue;
+
+                Console.WriteLine($"📩 #{cliente.Id}: {msg}");
+                Broadcast($"POS:{cliente.Id}:{msg}", cliente.Id);
+            }
         }
-
-        Console.WriteLine($"Handshake completado con vehículo #{cliente.Id}");
-        
-        // Aquí iría el resto de la lógica de comunicación...
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error con vehículo #{cliente.Id}: {ex.Message}");
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Error con #{cliente.Id}: {ex.Message}");
+        }
+        finally
+        {
+            RemoveClient(cliente.Id);
         }
     }
 
-}
-
-// Clase para almacenar información del cliente 
-class Cliente
-{
-    public int Id { get; }
-    public string Direccion { get; }
-    public TcpClient TcpClient { get; }
-
-    public Cliente(int id, string direccion, TcpClient tcpClient)
+    static void Broadcast(string msg, int senderId)
     {
-        Id = id;
-        Direccion = direccion;
-        TcpClient = tcpClient;
+        foreach (var (id, client) in _clientes)
+        {
+            if (id == senderId) continue;
+
+            try
+            {
+                var writer = new StreamWriter(client.TcpClient.GetStream()) { AutoFlush = true };
+                writer.WriteLine(msg);
+            }
+            catch
+            {
+                RemoveClient(id);
+            }
+        }
+    }
+
+    static void RemoveClient(int id)
+    {
+        if (!_clientes.TryRemove(id, out var cliente)) return;
+
+        try
+        {
+            cliente.TcpClient.Close();
+            Console.WriteLine($"🚪 #{id} desconectado. Restantes: {_clientes.Count}");
+        }
+        catch { /* Ignorar errores al cerrar */ }
     }
 }

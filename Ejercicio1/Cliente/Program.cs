@@ -1,37 +1,63 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 
 class Program
 {
-   static void Main()
-{
-    try
+    static void Main()
     {
-        using TcpClient client = new TcpClient("127.0.0.1", 8080);
-        NetworkStream stream = client.GetStream();
+        try
+        {
+            Console.WriteLine("🚦 Conectando al servidor...");
+            
+            using TcpClient client = new TcpClient("127.0.0.1", 8080);
+            NetworkStream stream = client.GetStream();
+            var reader = new System.IO.StreamReader(stream);
+            var writer = new System.IO.StreamWriter(stream) { AutoFlush = true };
 
-        // Paso 1: Enviar "INICIO"
-        NetworkStreamClass.EscribirMensajeNetworkStream(stream, "INICIO");
-        Console.WriteLine("Iniciando handshake...");
+            // 1. Handshake - Recibir ID
+            string idMessage = reader.ReadLine();
+            if (!idMessage.StartsWith("ID:"))
+                throw new Exception("Protocolo inválido");
 
-        // Paso 2: Recibir ID y dirección
-        string datosServidor = NetworkStreamClass.LeerMensajeNetworkStream(stream);
-        string[] partes = datosServidor.Split(':');
-        int id = int.Parse(partes[0]);
-        string direccion = partes[1];
-        
-        Console.WriteLine($"Asignado ID: {id}, Dirección: {direccion}");
+            int id = int.Parse(idMessage.Split(':')[1]);
+                
+            // 2. Confirmar handshake
+            writer.WriteLine($"ACK:{id}");
+            Console.WriteLine($"✅ Conectado como Vehículo #{id}");
 
-        // Paso 3: Confirmar ID al servidor
-        NetworkStreamClass.EscribirMensajeNetworkStream(stream, id.ToString());
-        Console.WriteLine("Handshake completado exitosamente!");
+            // 3. Simular movimiento
+            for (int posicion = 0; posicion <= 100; posicion += 10)
+            {
+                // Enviar posición actual
+                writer.WriteLine($"POS:{posicion}");
+                Console.WriteLine($"📤 Enviada posición: {posicion}km");
 
-        // Aquí iría el resto de la lógica del cliente...
+                // Recibir actualizaciones de otros vehículos
+                if (stream.DataAvailable)
+                {
+                    string update = reader.ReadLine();
+                    if (!string.IsNullOrEmpty(update))
+                        Console.WriteLine($"📥 Actualización: {update}");
+                }
+
+                Thread.Sleep(2000); // Espera 2 segundos
+            }
+
+            Console.WriteLine("🏁 Recorrido completado");
+        }
+        catch (SocketException)
+        {
+            Console.WriteLine("🔌 Error: No se pudo conectar al servidor");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Error: {ex.Message}");
+        }
+        finally
+        {
+            Console.WriteLine("Presiona Enter para salir...");
+            Console.ReadLine();
+        }
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error: {ex.Message}");
-    }
-}
-
 }
