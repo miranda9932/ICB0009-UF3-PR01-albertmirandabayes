@@ -60,4 +60,23 @@ El sistema implementa una arquitectura centralizada donde:
 
 ### Captura de pantalla salida por consola final: 
 
+- Servidor:
+<img width="984" alt="Captura de pantalla 2025-04-04 a las 22 25 48" src="https://github.com/user-attachments/assets/aee45b3b-2832-452b-9e15-fa0040f70080" />
+
+- Cliente 1:
+<img width="984" alt="Captura de pantalla 2025-04-04 a las 22 26 36" src="https://github.com/user-attachments/assets/d92c6f9e-01d5-49b8-bc11-1d2f87af62be" />
+
+- Cliente 2:
+<img width="984" alt="Captura de pantalla 2025-04-04 a las 22 27 07" src="https://github.com/user-attachments/assets/7bfcf8d7-700d-4e1c-bbfd-97dca8270500" />
+
+- Cliente 3:
+<img width="984" alt="Captura de pantalla 2025-04-04 a las 22 27 31" src="https://github.com/user-attachments/assets/ca176594-ee36-4dd8-895b-909dd13ced7d" />
+
+
+
+
+
+
+
+
 
