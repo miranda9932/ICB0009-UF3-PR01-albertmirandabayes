@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "5IvLcIUzN+U=",
+  "success": true,
+  "projectFilePath": "/Users/albertmiranda/Desktop/PracticaM09Uf3/Ejercicio2/Cliente/Cliente.csproj",
+  "expectedPackageFiles": [
+    "/Users/albertmiranda/.nuget/packages/system.text.json/9.0.3/system.text.json.9.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

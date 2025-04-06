@@ -1,0 +1,17 @@
+## Ignorar archivos de compilación y caché
+**/bin/
+**/obj/
+**/.vs/
+
+## Ignorar archivos específicos de IDE
+*.user
+*.suo
+*.userprefs
+*.vspscc
+*.vssscc
+.vs/
+
+## Ignorar archivos de respaldo
+*~
+*.swp
+*.bak 
