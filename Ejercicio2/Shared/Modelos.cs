@@ -9,4 +9,3 @@ public class Carretera
 {
     public List<Vehiculo> Vehiculos { get; } = new();
 }
-
