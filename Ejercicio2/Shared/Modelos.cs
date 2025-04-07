@@ -8,5 +8,5 @@ public class Vehiculo
 
 public class Carretera
 {
-    public List<Vehiculo> Vehiculos { get; } = new();
+    public List<Vehiculo> Vehiculos { get; set; } = new();
 }

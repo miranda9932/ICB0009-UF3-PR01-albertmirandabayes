@@ -62,9 +62,32 @@ public static class NetworkStreamClass
 
     public static Carretera LeerDatosCarretera(NetworkStream stream)
     {
-        string mensaje = LeerMensajeNetworkStream(stream);
-        string json = mensaje.Split(':')[1];
-        return JsonSerializer.Deserialize<Carretera>(json);
+        try
+        {
+            string mensaje = LeerMensajeNetworkStream(stream);
+            Console.WriteLine($"Recibido mensaje para carretera: {mensaje}");
+            
+            if (!mensaje.StartsWith("CARR:"))
+            {
+                throw new InvalidOperationException("Formato de mensaje incorrecto. Se esperaba 'CARR:'");
+            }
+
+            string json = mensaje.Substring(5); // Eliminar el prefijo "CARR:"
+            Console.WriteLine($"JSON de la carretera a deserializar: {json}");
+            
+            var carretera = JsonSerializer.Deserialize<Carretera>(json);
+            if (carretera == null)
+            {
+                throw new InvalidOperationException("No se pudo deserializar la carretera");
+            }
+            
+            return carretera;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al deserializar carretera: {ex.Message}");
+            throw;
+        }
     }
 
     public static void EscribirMensajeNetworkStream(NetworkStream stream, string mensaje)

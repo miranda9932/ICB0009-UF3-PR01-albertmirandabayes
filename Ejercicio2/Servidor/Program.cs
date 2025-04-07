@@ -27,7 +27,7 @@ class Program
     {
         var server = new TcpListener(IPAddress.Any, 8080);
         server.Start();
-        Console.WriteLine("Servidor iniciado (Ejercicio 2)");
+        Console.WriteLine("🟢 Servidor iniciado");
 
         while (true)
         {
@@ -37,13 +37,13 @@ class Program
                 var id = GenerarId();
                 var cliente = new Cliente(id, client);
                 _clientes.TryAdd(id, cliente);
-                Console.WriteLine($"Nuevo cliente conectado con ID: {id}");
+                Console.WriteLine($"🚗 Nuevo cliente conectado - ID: {id}");
 
                 new Thread(() => HandleClient(cliente)).Start();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al aceptar cliente: {ex.Message}");
+                Console.WriteLine($"❌ Error aceptando cliente: {ex.Message}");
             }
         }
     }
@@ -63,65 +63,88 @@ class Program
             NetworkStreamClass.EscribirMensajeNetworkStream(cliente.Stream, $"{cliente.Id}:{direccion}");
             NetworkStreamClass.LeerMensajeNetworkStream(cliente.Stream); // "ACK:id"
 
-            // --- Recibir vehículo inicial ---
+            // --- Registro inicial ---
             Vehiculo vehiculo = NetworkStreamClass.LeerDatosVehiculo(cliente.Stream);
             lock (_lock)
             {
                 _carretera.Vehiculos.Add(vehiculo);
             }
+            Console.WriteLine($"📝 Vehículo #{vehiculo.Id} registrado - Dirección: {direccion}");
 
-            Console.WriteLine($"Vehículo #{vehiculo.Id} inició recorrido ({direccion})");
-
-            // --- Bucle principal (ETAPA 3) ---
+            // --- Bucle principal ---
             while (cliente.TcpClient.Connected)
             {
                 var vehiculoActualizado = NetworkStreamClass.LeerDatosVehiculo(cliente.Stream);
                 
-                // Actualizar posición
+                // Actualización segura del estado
                 lock (_lock)
                 {
                     var vehiculoEnCarretera = _carretera.Vehiculos.First(v => v.Id == vehiculoActualizado.Id);
                     vehiculoEnCarretera.Posicion = vehiculoActualizado.Posicion;
                     vehiculoEnCarretera.ViajeCompletado = vehiculoActualizado.ViajeCompletado;
+                    Console.WriteLine($"📡 Actualización - Vehículo #{vehiculo.Id} → km {vehiculoActualizado.Posicion}");
                 }
 
-                Console.WriteLine($"📍 Vehículo #{vehiculo.Id} → km {vehiculoActualizado.Posicion}");
-
-                // Broadcast (ETAPA 3)
-                if (DateTime.Now.Second % 2 == 0) // Cada 2 segundos aprox.
-                {
-                    BroadcastEstado();
-                }
+                // Broadcast inmediato
+                BroadcastEstado();
 
                 if (vehiculoActualizado.ViajeCompletado) break;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error con cliente #{cliente.Id}: {ex.Message}");
+            Console.WriteLine($"⚠️ Error con cliente #{cliente.Id}: {ex.Message}");
         }
         finally
         {
-            _clientes.TryRemove(cliente.Id, out _);
-            Console.WriteLine($"🚪 Vehículo #{cliente.Id} finalizó recorrido");
+            RemoverCliente(cliente.Id);
         }
     }
 
     static void BroadcastEstado()
     {
+        Carretera copiaSegura;
         lock (_lock)
         {
-            foreach (var c in _clientes.Values.Where(c => c.TcpClient.Connected))
+            copiaSegura = new Carretera
             {
-                try
+                Vehiculos = _carretera.Vehiculos.Select(v => new Vehiculo 
                 {
-                    NetworkStreamClass.EscribirDatosCarretera(c.Stream, _carretera);
-                }
-                catch
+                    Id = v.Id,
+                    Posicion = v.Posicion,
+                    Direccion = v.Direccion,
+                    ViajeCompletado = v.ViajeCompletado
+                }).ToList()
+            };
+        }
+
+        foreach (var cliente in _clientes.Values.ToList())
+        {
+            try
+            {
+                if (cliente.TcpClient.Connected)
                 {
-                    _clientes.TryRemove(c.Id, out _);
+                    NetworkStreamClass.EscribirDatosCarretera(cliente.Stream, copiaSegura);
+                    Console.WriteLine($"📤 Estado enviado a cliente #{cliente.Id}");
                 }
             }
+            catch
+            {
+                RemoverCliente(cliente.Id);
+            }
+        }
+    }
+
+    static void RemoverCliente(int id)
+    {
+        if (_clientes.TryRemove(id, out var cliente))
+        {
+            try
+            {
+                cliente.TcpClient.Close();
+                Console.WriteLine($"🚪 Cliente #{id} desconectado");
+            }
+            catch { /* Ignorar errores al cerrar */ }
         }
     }
 }
