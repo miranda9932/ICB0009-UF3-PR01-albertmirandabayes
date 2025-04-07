@@ -1,5 +1,4 @@
-﻿// Ejercicio2/Servidor/Program.cs
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Collections.Concurrent;
@@ -9,6 +8,7 @@ class Program
     static ConcurrentDictionary<int, Cliente> _clientes = new();
     static Carretera _carretera = new();
     static int _nextId = 1;
+    static object _lock = new();
 
     class Cliente
     {
@@ -34,7 +34,7 @@ class Program
             try
             {
                 var client = server.AcceptTcpClient();
-                var id = _nextId++;
+                var id = GenerarId();
                 var cliente = new Cliente(id, client);
                 _clientes.TryAdd(id, cliente);
                 Console.WriteLine($"Nuevo cliente conectado con ID: {id}");
@@ -48,41 +48,80 @@ class Program
         }
     }
 
+    static int GenerarId()
+    {
+        lock (_lock) return _nextId++;
+    }
+
     static void HandleClient(Cliente cliente)
     {
         try
         {
-            Console.WriteLine($"Procesando cliente #{cliente.Id}");
-            
-            // --- Handshake (Ejercicio 1) ---
-            string mensajeInicio = NetworkStreamClass.LeerMensajeNetworkStream(cliente.Stream);
-            Console.WriteLine($"Cliente #{cliente.Id} envió: {mensajeInicio}");
-            
+            // --- Handshake ---
+            NetworkStreamClass.LeerMensajeNetworkStream(cliente.Stream); // "INICIO"
             string direccion = new Random().Next(0, 2) == 0 ? "Norte" : "Sur";
-            string respuesta = $"{cliente.Id}:{direccion}";
-            Console.WriteLine($"Enviando a cliente #{cliente.Id}: {respuesta}");
-            NetworkStreamClass.EscribirMensajeNetworkStream(cliente.Stream, respuesta);
-            
-            string ack = NetworkStreamClass.LeerMensajeNetworkStream(cliente.Stream);
-            Console.WriteLine($"Cliente #{cliente.Id} confirmó: {ack}");
+            NetworkStreamClass.EscribirMensajeNetworkStream(cliente.Stream, $"{cliente.Id}:{direccion}");
+            NetworkStreamClass.LeerMensajeNetworkStream(cliente.Stream); // "ACK:id"
 
-            // --- Nuevo en Ejercicio 2 ---
-            Console.WriteLine($"Esperando datos del vehículo del cliente #{cliente.Id}");
+            // --- Recibir vehículo inicial ---
             Vehiculo vehiculo = NetworkStreamClass.LeerDatosVehiculo(cliente.Stream);
-            Console.WriteLine($"Recibido vehículo #{vehiculo.Id} (Pos: {vehiculo.Posicion}km, Dir: {vehiculo.Direccion})");
-            
-            _carretera.Vehiculos.Add(vehiculo);
-            Console.WriteLine($"Vehículo #{vehiculo.Id} añadido a la carretera");
+            lock (_lock)
+            {
+                _carretera.Vehiculos.Add(vehiculo);
+            }
 
-            // Bucle principal (se implementará en Etapa 3)
+            Console.WriteLine($"Vehículo #{vehiculo.Id} inició recorrido ({direccion})");
+
+            // --- Bucle principal (ETAPA 3) ---
+            while (cliente.TcpClient.Connected)
+            {
+                var vehiculoActualizado = NetworkStreamClass.LeerDatosVehiculo(cliente.Stream);
+                
+                // Actualizar posición
+                lock (_lock)
+                {
+                    var vehiculoEnCarretera = _carretera.Vehiculos.First(v => v.Id == vehiculoActualizado.Id);
+                    vehiculoEnCarretera.Posicion = vehiculoActualizado.Posicion;
+                    vehiculoEnCarretera.ViajeCompletado = vehiculoActualizado.ViajeCompletado;
+                }
+
+                Console.WriteLine($"📍 Vehículo #{vehiculo.Id} → km {vehiculoActualizado.Posicion}");
+
+                // Broadcast (ETAPA 3)
+                if (DateTime.Now.Second % 2 == 0) // Cada 2 segundos aprox.
+                {
+                    BroadcastEstado();
+                }
+
+                if (vehiculoActualizado.ViajeCompletado) break;
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error detallado con cliente #{cliente.Id}:");
-            Console.WriteLine($"Tipo de error: {ex.GetType().Name}");
-            Console.WriteLine($"Mensaje: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            Console.WriteLine($"Error con cliente #{cliente.Id}: {ex.Message}");
+        }
+        finally
+        {
             _clientes.TryRemove(cliente.Id, out _);
+            Console.WriteLine($"🚪 Vehículo #{cliente.Id} finalizó recorrido");
+        }
+    }
+
+    static void BroadcastEstado()
+    {
+        lock (_lock)
+        {
+            foreach (var c in _clientes.Values.Where(c => c.TcpClient.Connected))
+            {
+                try
+                {
+                    NetworkStreamClass.EscribirDatosCarretera(c.Stream, _carretera);
+                }
+                catch
+                {
+                    _clientes.TryRemove(c.Id, out _);
+                }
+            }
         }
     }
 }
