@@ -11,9 +11,9 @@
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
   </ItemGroup>
 
-<ItemGroup>
+  <ItemGroup>
     <Compile Include="../Shared/NetworkStreamClass.cs" Link="NetworkStreamClass.cs" />
-</ItemGroup>
-
+    <Compile Include="../Shared/Modelos.cs" Link="Modelos.cs" />
+  </ItemGroup>
 
 </Project>

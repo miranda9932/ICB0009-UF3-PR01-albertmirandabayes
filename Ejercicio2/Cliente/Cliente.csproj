@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Compile Include="../Shared/NetworkStreamClass.cs" Link="NetworkStreamClass.cs" />
-</ItemGroup>
-
+    <Compile Include="../Shared/Modelos.cs" Link="Modelos.cs" />
+  </ItemGroup>
 
 </Project>

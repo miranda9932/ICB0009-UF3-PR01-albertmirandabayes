@@ -11,15 +11,47 @@ public static class NetworkStreamClass
 
     public static void EscribirDatosVehiculo(NetworkStream stream, Vehiculo vehiculo)
     {
-        string json = JsonSerializer.Serialize(vehiculo);
-        EscribirMensajeNetworkStream(stream, $"VEH:{json}");
+        try
+        {
+            string json = JsonSerializer.Serialize(vehiculo);
+            Console.WriteLine($"Enviando JSON del vehículo: {json}");
+            EscribirMensajeNetworkStream(stream, $"VEH:{json}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al serializar vehículo: {ex.Message}");
+            throw;
+        }
     }
 
     public static Vehiculo LeerDatosVehiculo(NetworkStream stream)
     {
-        string mensaje = LeerMensajeNetworkStream(stream);
-        string json = mensaje.Split(':')[1];
-        return JsonSerializer.Deserialize<Vehiculo>(json);
+        try
+        {
+            string mensaje = LeerMensajeNetworkStream(stream);
+            Console.WriteLine($"Recibido mensaje para vehículo: {mensaje}");
+            
+            if (!mensaje.StartsWith("VEH:"))
+            {
+                throw new InvalidOperationException("Formato de mensaje incorrecto. Se esperaba 'VEH:'");
+            }
+
+            string json = mensaje.Substring(4); // Eliminar el prefijo "VEH:"
+            Console.WriteLine($"JSON del vehículo a deserializar: {json}");
+            
+            var vehiculo = JsonSerializer.Deserialize<Vehiculo>(json);
+            if (vehiculo == null)
+            {
+                throw new InvalidOperationException("No se pudo deserializar el vehículo");
+            }
+            
+            return vehiculo;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al deserializar vehículo: {ex.Message}");
+            throw;
+        }
     }
 
     public static void EscribirDatosCarretera(NetworkStream stream, Carretera carretera)
@@ -44,8 +76,11 @@ public static class NetworkStreamClass
 
             // Formato: [longitud mensaje]:[mensaje]
             string mensajeFormateado = $"{mensaje.Length}:{mensaje}";
+            Console.WriteLine($"Enviando mensaje formateado: {mensajeFormateado}");
+            
             byte[] buffer = _encoding.GetBytes(mensajeFormateado);
             stream.Write(buffer, 0, buffer.Length);
+            stream.Flush(); // Asegurar que los datos se envían
         }
         catch (Exception ex)
         {
@@ -73,16 +108,22 @@ public static class NetworkStreamClass
             }
 
             int length = int.Parse(lengthBuilder.ToString());
+            Console.WriteLine($"Longitud del mensaje a leer: {length}");
+            
             byte[] buffer = new byte[length];
             int bytesRead = 0;
 
             // Leer el mensaje completo
             while (bytesRead < length)
             {
-                bytesRead += stream.Read(buffer, bytesRead, length - bytesRead);
+                int read = stream.Read(buffer, bytesRead, length - bytesRead);
+                if (read == 0) break; // Fin del stream
+                bytesRead += read;
             }
 
-            return _encoding.GetString(buffer, 0, length);
+            string mensaje = _encoding.GetString(buffer, 0, length);
+            Console.WriteLine($"Mensaje recibido: {mensaje}");
+            return mensaje;
         }
         catch (Exception ex)
         {
