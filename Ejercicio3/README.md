@@ -26,7 +26,6 @@ No he conseguido llegar a tiempo para realizar el ejercicio 3 y tendre que dejar
 
 **Inconvenientes:**
 1. **Inconsistencia**: Riesgo de estados inconsistentes entre clientes.
-2. **Seguridad**: Dificultad para garantizar el cumplimiento de reglas.
 3. **Complejidad**: Los clientes deben implementar lógica compleja.
 4. **Sincronización**: Mayor dificultad para coordinar acciones.
 

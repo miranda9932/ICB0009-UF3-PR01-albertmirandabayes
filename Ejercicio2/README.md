@@ -3,7 +3,7 @@
 ## Descripción
 Se implementa un sistema de simulación de tráfico en tiempo real con comunicación cliente-servidor. El sistema permite la gestión de vehículos en una carretera virtual, con actualizaciones en tiempo real y manejo de múltiples clientes.
 
-## Mejoras Implementadas sobre el Ejercicio 1
+## Implementaciones ejercicio 2: 
 
 ### 1. Manejo de Conexiones Mejorado
 - Implementación de `ConcurrentDictionary` para gestionar múltiples clientes de forma segura
@@ -68,4 +68,70 @@ Se implementa un sistema de simulación de tráfico en tiempo real con comunicac
 3. **Mensajes de Control**
    - "ESPERA": Indica espera activa
    - "FIN": Finalización de conexión
+
+## Capturas de pantalla de cliente y servidores por etapas: 
+
+1. **Etapa 2:**
+
+- Servidor:
+
+<img width="780" alt="Salida por pantalla servidor " src="https://github.com/user-attachments/assets/307842b1-be42-4e45-9f7c-8545ce17185b" />
+- Cliente 1:
+
+<img width="974" alt="Salida por consola cliente 1" src="https://github.com/user-attachments/assets/fba5fa82-0082-4a31-b373-9869d64df4d9" />
+- Cliente 2:
+
+<img width="974" alt="Salida por consola cliente 2" src="https://github.com/user-attachments/assets/0113acdc-2b7e-4567-befe-e25d01ee6b45" />
+- Cliente 3:
+
+<img width="974" alt="Salida por pantalla cliente 3" src="https://github.com/user-attachments/assets/6e6f90ea-b56a-4c36-b4b4-0fc2677fb621" />
+
+
+2. **Etapa 3:**
+
+- Servidor (parcialmente):
+
+<img width="1166" alt="Salida por consola servidor 1:2" src="https://github.com/user-attachments/assets/77b78d71-55c8-4b2a-92ef-2a3c3c15002c" />
+
+- Cliente 1:
+
+<img width="1166" alt="Salida consola cliente 1" src="https://github.com/user-attachments/assets/5c31656b-1964-4e20-adc8-bf8a689b540d" />
+
+- Cliente 2:
+
+<img width="1166" alt="Salida consola cliente 2" src="https://github.com/user-attachments/assets/256d17a2-817d-4bfa-a90a-77223227817f" />
+
+3. **Etapa 4 y 5:**
+
+- Servidor:
+
+<img width="1507" alt="Captura de pantalla 2025-04-08 a las 11 43 44" src="https://github.com/user-attachments/assets/74947f53-bc03-4ae7-b4b1-b83bb459286f" />
+
+- Cliente 1:
+
+<img width="1507" alt="Captura de pantalla 2025-04-08 a las 11 43 19" src="https://github.com/user-attachments/assets/77065b59-ad77-4725-98dc-8561ead0b75b" />
+
+- Cliente 2:
+
+<img width="1507" alt="Captura de pantalla 2025-04-08 a las 11 43 13" src="https://github.com/user-attachments/assets/488c8aec-5616-4f97-a975-2418a2e8c37b" />
+
+- Cliente 3:
+
+<img width="1507" alt="Captura de pantalla 2025-04-08 a las 11 43 08" src="https://github.com/user-attachments/assets/10a1855f-74ec-467a-ab9b-b52c5a83514a" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
