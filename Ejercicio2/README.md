@@ -3,7 +3,7 @@
 ## Descripción
 Se implementa un sistema de simulación de tráfico en tiempo real con comunicación cliente-servidor. El sistema permite la gestión de vehículos en una carretera virtual, con actualizaciones en tiempo real y manejo de múltiples clientes.
 
-## Mejoras Implementadas sobre el Ejercicio 1
+## Implementaciones ejercicio 2: 
 
 ### 1. Manejo de Conexiones Mejorado
 - Implementación de `ConcurrentDictionary` para gestionar múltiples clientes de forma segura
@@ -68,4 +68,25 @@ Se implementa un sistema de simulación de tráfico en tiempo real con comunicac
 3. **Mensajes de Control**
    - "ESPERA": Indica espera activa
    - "FIN": Finalización de conexión
+
+## Capturas de pantalla de cliente y servidores por etapas: 
+
+1. **Etapa 2:**
+
+- Servidor:
+<img width="780" alt="Salida por pantalla servidor " src="https://github.com/user-attachments/assets/307842b1-be42-4e45-9f7c-8545ce17185b" />
+- Cliente 1:
+<img width="974" alt="Salida por consola cliente 1" src="https://github.com/user-attachments/assets/fba5fa82-0082-4a31-b373-9869d64df4d9" />
+- Cliente 2:
+<img width="974" alt="Salida por consola cliente 2" src="https://github.com/user-attachments/assets/0113acdc-2b7e-4567-befe-e25d01ee6b45" />
+- Cliente 3:
+<img width="974" alt="Salida por pantalla cliente 3" src="https://github.com/user-attachments/assets/6e6f90ea-b56a-4c36-b4b4-0fc2677fb621" />
+
+
+
+
+
+
+
+
 
